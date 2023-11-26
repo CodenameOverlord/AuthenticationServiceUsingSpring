@@ -6,11 +6,15 @@ import com.utsav.authenication.springbootAuthenticationBasic.model.SessionStatus
 import com.utsav.authenication.springbootAuthenticationBasic.model.User;
 import com.utsav.authenication.springbootAuthenticationBasic.model.UserStatus;
 import com.utsav.authenication.springbootAuthenticationBasic.repo.UserRepository;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.Random;
+import javax.crypto.SecretKey;
+import java.security.Key;
+import java.util.*;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService{
@@ -27,10 +31,10 @@ public class AuthenticationServiceImpl implements AuthenticationService{
         if(userOptional.isPresent() && password.equals(userOptional.get().getPassword())){
             User user = userOptional.get();
             //fetch all sessions with status active
-            sessionService.findByUserAndSessionStatusAndInactivate(user, SessionStatus.ACTIVE);
             //inactivate all active tokens and save
+            sessionService.findByUserAndSessionStatusAndInactivate(user, SessionStatus.ACTIVE);
             //generate new token
-            String token = generateRandomString(ApplicationConstants.lengthRandomToken);
+            String token = buildToken(user, new Date());
             //saveToken
             sessionService.saveActiveToken(user, token, SessionStatus.ACTIVE);
             //formResponseBody randomToken
@@ -43,22 +47,26 @@ public class AuthenticationServiceImpl implements AuthenticationService{
         return randomToken;
     }
 
-
-    private String generateRandomString(Integer targetStringLength) {
-        int leftLimit = 97; // letter 'a'
-        int rightLimit = 122; // letter 'z'
-//        int targetStringLength = 10;
-        Random random = new Random();
-        StringBuilder buffer = new StringBuilder(targetStringLength);
-        for (int i = 0; i < targetStringLength; i++) {
-            int randomLimitedInt = leftLimit + (int)
-                    (random.nextFloat() * (rightLimit - leftLimit + 1));
-            buffer.append((char) randomLimitedInt);
-        }
-        String generatedString = buffer.toString();
-        return generatedString;
+    private String buildToken(User user, Date date) {
+        Map<String, String> headerMap = new HashMap<>();
+        headerMap.put("alg","HS324");
+        headerMap.put("typ","JWT");
+        Map<String, ?> payLoadMap = getPayload(user, new Date());
+        SecretKey key = getSecretKey();
+        return Jwts.builder().header().add(headerMap).and().claims(payLoadMap).signWith(key).compact();
     }
 
+    private SecretKey getSecretKey() {
+        return Keys.hmacShaKeyFor(ApplicationConstants.SECRET_KEY.getBytes()); //or HS384.key() or HS512.key()
+    }
+
+    private Map<String,Object> getPayload(User user, Date date) {
+        Map<String, Object> payLoadMap = new HashMap<>();
+        payLoadMap.put("userEmail", user.getEmail());
+        payLoadMap.put("userId", user.getId());
+        payLoadMap.put("generatedDate", date);
+        return payLoadMap;
+    }
     @Override
     public String validate(String userEmail, String token) {
         return sessionService.validateToken(userEmail, token );
