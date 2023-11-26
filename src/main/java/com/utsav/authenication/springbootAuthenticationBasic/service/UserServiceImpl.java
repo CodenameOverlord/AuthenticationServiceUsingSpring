@@ -6,6 +6,8 @@ import com.utsav.authenication.springbootAuthenticationBasic.model.User;
 import com.utsav.authenication.springbootAuthenticationBasic.model.UserStatus;
 import com.utsav.authenication.springbootAuthenticationBasic.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -36,9 +38,10 @@ public class UserServiceImpl implements UserService{
     @Override
     public UserResDto createuser(UserReqDto userReqDto) {
         User user = new User();
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setFullName(userReqDto.getFullName());
         user.setEmail(userReqDto.getEmail());
-        user.setPassword(userReqDto.getPassword());
+        user.setPassword(passwordEncoder.encode(userReqDto.getPassword()));
         user.setCreatedDttm(Date.from(Instant.now()));
         user.setIsDeleted("N");
         user.setUserStatus(UserStatus.ACTIVE);

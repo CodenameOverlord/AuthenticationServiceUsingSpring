@@ -10,6 +10,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -28,16 +30,29 @@ public class AuthenticationServiceImpl implements AuthenticationService{
         Optional<User> userOptional = userRepository.findByEmailAndUserStatusAndIsDeleted(userEmail, UserStatus.ACTIVE,"N");
 //        User user = userOptional.get();
         RandomToken randomToken = new RandomToken();
-        if(userOptional.isPresent() && password.equals(userOptional.get().getPassword())){
+        boolean success = false;
+        String token = "";
+        if(userOptional.isPresent()){
             User user = userOptional.get();
-            //fetch all sessions with status active
-            //inactivate all active tokens and save
-            sessionService.findByUserAndSessionStatusAndInactivate(user, SessionStatus.ACTIVE);
-            //generate new token
-            String token = buildToken(user, new Date());
-            //saveToken
-            sessionService.saveActiveToken(user, token, SessionStatus.ACTIVE);
-            //formResponseBody randomToken
+            //checkPassword
+            if(checkPasswordMatch(password, user.getPassword())){
+                //fetch all sessions with status active
+                //inactivate all active tokens and save
+                sessionService.findByUserAndSessionStatusAndInactivate(user, SessionStatus.ACTIVE);
+                //generate new token
+                token = buildToken(user, new Date());
+                //saveToken
+                sessionService.saveActiveToken(user, token, SessionStatus.ACTIVE);
+                //formResponseBody randomToken
+                success = true;
+                randomToken.setToken(token);
+                randomToken.setMessage("success");
+            }
+            else{
+                success = false;
+            }
+        }
+        if(success){
             randomToken.setToken(token);
             randomToken.setMessage("success");
         }
@@ -45,6 +60,11 @@ public class AuthenticationServiceImpl implements AuthenticationService{
             randomToken.setMessage("invalid userName or Password");
         }
         return randomToken;
+    }
+
+    private boolean checkPasswordMatch(String rawPassword, String encodedPassword) {
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder (0);
+        return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 
     private String buildToken(User user, Date date) {

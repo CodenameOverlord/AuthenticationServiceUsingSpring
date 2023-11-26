@@ -5,6 +5,8 @@ import com.utsav.authenication.springbootAuthenticationBasic.repo.UserRepository
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootTest
 class SpringbootAuthenticationBasicApplicationTests {
@@ -20,6 +22,10 @@ class SpringbootAuthenticationBasicApplicationTests {
 		user.setFullName("randopm full name");
 		user.setPassword("password123#");
 		userRepository.save(user);
+	}
+	@Test
+	void testPassword(){
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 	}
 
 
