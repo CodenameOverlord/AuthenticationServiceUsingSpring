@@ -4,5 +4,5 @@ public enum SessionStatus {
     ACTIVE,
     INACTIVE,
     EXPIRED,
-    DELETED
+    INVALID, DELETED
 }

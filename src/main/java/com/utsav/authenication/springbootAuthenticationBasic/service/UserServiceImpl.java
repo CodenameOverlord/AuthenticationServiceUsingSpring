@@ -36,17 +36,25 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public UserResDto createuser(UserReqDto userReqDto) {
-        User user = new User();
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        user.setFullName(userReqDto.getFullName());
-        user.setEmail(userReqDto.getEmail());
-        user.setPassword(passwordEncoder.encode(userReqDto.getPassword()));
-        user.setCreatedDttm(Date.from(Instant.now()));
-        user.setIsDeleted("N");
-        user.setUserStatus(UserStatus.ACTIVE);
-        User savedUser = userRepository.save(user);
-        UserResDto userResDto =ObjectConverter.convertUserToUserResDto(user);
-        return userResDto;
+    public Optional<UserResDto> createuser(UserReqDto userReqDto) {
+        Optional<User> userOptional = userRepository.findByEmailAndIsDeleted(userReqDto.getEmail(),"N");
+        UserResDto userResDto = null;
+        if(userOptional.isEmpty()){
+            User user = new User();
+            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            user.setFullName(userReqDto.getFullName());
+            user.setEmail(userReqDto.getEmail());
+            user.setPassword(passwordEncoder.encode(userReqDto.getPassword()));
+            user.setCreatedDttm(Date.from(Instant.now()));
+            user.setIsDeleted("N");
+            user.setUserStatus(UserStatus.ACTIVE);
+            User savedUser = userRepository.save(user);
+            userResDto =ObjectConverter.convertUserToUserResDto(user);
+            return Optional.of(userResDto);
+        }
+        return Optional.of(userResDto);
+
+
+
     }
 }

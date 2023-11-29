@@ -1,10 +1,14 @@
 package com.utsav.authenication.springbootAuthenticationBasic.service;
 
 import com.utsav.authenication.springbootAuthenticationBasic.additional.ApplicationConstants;
+import com.utsav.authenication.springbootAuthenticationBasic.commons.JWTImpl;
+import com.utsav.authenication.springbootAuthenticationBasic.dto.TokenResponseDto;
+import com.utsav.authenication.springbootAuthenticationBasic.dto.UserResDto;
 import com.utsav.authenication.springbootAuthenticationBasic.model.Session;
 import com.utsav.authenication.springbootAuthenticationBasic.model.SessionStatus;
 import com.utsav.authenication.springbootAuthenticationBasic.model.User;
 import com.utsav.authenication.springbootAuthenticationBasic.repo.SessionRepository;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,24 +36,45 @@ public class SessionServiceImpl implements SessionService{
     }
 
     @Override
-    public String validateToken(String userEmail, String token) {
+    public Optional<TokenResponseDto> validateToken(String token) {
         boolean validated = false;
-        User user = userService.getUserByUserEmail(userEmail);
-        if(user!=null) {
-                Optional<Session> sessionOptional = sessionRepository.findByTokenAndSessionStatusAndUserAndIsDeleted(token, SessionStatus.ACTIVE,user , ApplicationConstants.isDeletedNo);
+        TokenResponseDto tokenResponseDto = new TokenResponseDto();
+        if(token!=null) {
+                Optional<Session> sessionOptional = sessionRepository.findByTokenAndSessionStatusAndIsDeleted(token, SessionStatus.ACTIVE,ApplicationConstants.isDeletedNo);
                 if (sessionOptional.isPresent()) {
                     Session session = sessionOptional.get();
                     if (token.equals(session.getToken())) {
-                        validated = true;
+                        Optional<UserResDto> userResDtoOptional = findUserResponseDtoFromJWT(token);
+                        if(userResDtoOptional.isPresent()){
+                            tokenResponseDto.setUserResDto(userResDtoOptional.get());
+                            tokenResponseDto.setSessionStatus(SessionStatus.ACTIVE);
+                            validated = true;
+                        }
                     }
                 }
         }
         if(validated){
-            return "Valid token";
+            return Optional.of(tokenResponseDto);
         }
         else{
-            return "invalid token";
+            return Optional.empty();
         }
+    }
+
+    private Optional<UserResDto> findUserResponseDtoFromJWT(String token) {
+        Claims claims = JWTImpl.parseJwtTokenImpl(token);
+        UserResDto userResDto = null;
+        try{
+            userResDto= new UserResDto();
+            userResDto.setEmail((String) claims.get("userEmail"));
+            userResDto.setId(Long.valueOf((Integer) claims.get("userId")));
+            userResDto.setFullName((String) claims.get("userFullName"));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return Optional.ofNullable(userResDto);
     }
 
     @Override

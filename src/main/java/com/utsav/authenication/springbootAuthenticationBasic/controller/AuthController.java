@@ -1,8 +1,11 @@
 package com.utsav.authenication.springbootAuthenticationBasic.controller;
 
 import com.utsav.authenication.springbootAuthenticationBasic.dto.RandomToken;
+import com.utsav.authenication.springbootAuthenticationBasic.dto.TokenRequestDto;
+import com.utsav.authenication.springbootAuthenticationBasic.dto.TokenResponseDto;
 import com.utsav.authenication.springbootAuthenticationBasic.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,7 +21,7 @@ public class AuthController {
     }
 
     @PostMapping("/validate/")
-    public String validateToken(@RequestParam(name = "userEmail") String userEmail, @RequestParam("token")  String token){
-        return authenticationService.validate(userEmail, token);
+    public ResponseEntity<TokenResponseDto> validateToken(@RequestBody TokenRequestDto tokenRequestDto){
+        return authenticationService.validate(tokenRequestDto);
     }
 }
