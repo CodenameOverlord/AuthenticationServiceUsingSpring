@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 @Service
 public class SessionServiceImpl implements SessionService{
@@ -39,19 +40,28 @@ public class SessionServiceImpl implements SessionService{
     public Optional<TokenResponseDto> validateToken(String token) {
         boolean validated = false;
         TokenResponseDto tokenResponseDto = new TokenResponseDto();
-        if(token!=null) {
-                Optional<Session> sessionOptional = sessionRepository.findByTokenAndSessionStatusAndIsDeleted(token, SessionStatus.ACTIVE,ApplicationConstants.isDeletedNo);
-                if (sessionOptional.isPresent()) {
-                    Session session = sessionOptional.get();
-                    if (token.equals(session.getToken())) {
-                        Optional<UserResDto> userResDtoOptional = findUserResponseDtoFromJWT(token);
-                        if(userResDtoOptional.isPresent()){
-                            tokenResponseDto.setUserResDto(userResDtoOptional.get());
-                            tokenResponseDto.setSessionStatus(SessionStatus.ACTIVE);
-                            validated = true;
-                        }
-                    }
-                }
+//        if(token!=null) {
+//                Optional<Session> sessionOptional = sessionRepository.findByTokenAndSessionStatusAndIsDeleted(token, SessionStatus.ACTIVE,ApplicationConstants.isDeletedNo);
+//                if (sessionOptional.isPresent()) {
+//                    Session session = sessionOptional.get();
+//                    if (token.equals(session.getToken())) {
+//                        Optional<UserResDto> userResDtoOptional = findUserResponseDtoFromJWT(token);
+//                        if(userResDtoOptional.isPresent()){
+//                            tokenResponseDto.setUserResDto(userResDtoOptional.get());
+//                            tokenResponseDto.setSessionStatus(SessionStatus.ACTIVE);
+//                            validated = true;
+//                        }
+//                    }
+//                }
+//        }
+
+        {
+            Optional<UserResDto> userResDtoOptional = findUserResponseDtoFromJWT(token);
+            if(userResDtoOptional.isPresent()){
+                tokenResponseDto.setUserResDto(userResDtoOptional.get());
+                tokenResponseDto.setSessionStatus(SessionStatus.ACTIVE);
+                validated = true;
+            }
         }
         if(validated){
             return Optional.of(tokenResponseDto);
@@ -69,6 +79,8 @@ public class SessionServiceImpl implements SessionService{
             userResDto.setEmail((String) claims.get("userEmail"));
             userResDto.setId(Long.valueOf((Integer) claims.get("userId")));
             userResDto.setFullName((String) claims.get("userFullName"));
+            List<String> roles = (List<String>) claims.get("userRoles");
+            userResDto.setRoles(roles);
         }
         catch (Exception e)
         {

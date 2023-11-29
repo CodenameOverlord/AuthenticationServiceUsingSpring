@@ -18,4 +18,6 @@ public class User extends BaseModel {
     private List<Session> sessions;
     @Enumerated(EnumType.ORDINAL)
     private UserStatus userStatus;
+    @OneToMany(mappedBy = "user")
+    private List<Role> roles;
 }

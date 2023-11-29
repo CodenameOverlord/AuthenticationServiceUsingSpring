@@ -13,7 +13,9 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class JWTImpl {
     private static String secretKey = ApplicationConstants.SECRET_KEY;
@@ -73,6 +75,11 @@ public class JWTImpl {
         payLoadMap.put("userId", user.getId());
         payLoadMap.put("userFullName", user.getFullName());
         payLoadMap.put("generatedDate", date);
+        List<String> roles = user.getRoles().
+                stream().
+                filter(r->"N".equals(r.getIsDeleted()))
+                .map(r->r.getRole()).collect(Collectors.toList());
+        payLoadMap.put("userRoles", roles);
         return payLoadMap;
     }
 
