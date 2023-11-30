@@ -1,7 +1,9 @@
 package com.utsav.authenication.springbootAuthenticationBasic.security.models;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.utsav.authenication.springbootAuthenticationBasic.model.Role;
 import com.utsav.authenication.springbootAuthenticationBasic.model.User;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -9,47 +11,71 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@JsonDeserialize
+@NoArgsConstructor
 public class CustomUserDetails implements UserDetails {
-    User user;
+
+
+//    User user;
+    private String password;
+    private String username;
+    private List<GrantedAuthority> authorities;
+    private Boolean enabled;
+    private Boolean credentialsNonExpired;
+    private Boolean accountNonLocked;
+    private Boolean accountNonExpired;
+
     public CustomUserDetails(User user){
-        this.user = user;
+        authorities = new ArrayList<>();
+        this.username = user.getEmail();
+        this.password = user.getPassword();
+        for(Role r: user.getRoles()){
+            authorities.add(new CustomGrantedAuthority(r));
+        }
+        this.enabled = true;
+        this.accountNonExpired = true;
+        this.accountNonLocked = true;
+        this.credentialsNonExpired = true;
+//        return grantedAuthorities;
+
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<CustomGrantedAuthority> grantedAuthorities = new ArrayList<>();
-        for(Role r: user.getRoles()){
-            grantedAuthorities.add(new CustomGrantedAuthority(r));
-        }
-        return grantedAuthorities;
+//        grantedAuthorities = new ArrayList<>();
+//        for(Role r: user.getRoles()){
+//            grantedAuthorities.add(new CustomGrantedAuthority(r));
+//        }
+//        return grantedAuthorities;
+        return this.authorities;
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return this.password;
     }
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return this.username;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return this.accountNonExpired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return this.accountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // if(Date.now()- lastPasswordUpdatedDate >90 days return true else return false;
+        return this.credentialsNonExpired; // if(Date.now()- lastPasswordUpdatedDate >90 days return true else return false;
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.enabled;
     }
 }

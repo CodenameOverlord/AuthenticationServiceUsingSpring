@@ -1,15 +1,10 @@
 package com.utsav.authenication.springbootAuthenticationBasic.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
-import lombok.Getter;
 
 import java.util.List;
 
-@Getter
 @Entity(name = "users")
 public class User extends BaseModel {
     private String email;
@@ -19,7 +14,7 @@ public class User extends BaseModel {
     private List<Session> sessions;
     @Enumerated(EnumType.ORDINAL)
     private UserStatus userStatus;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(fetch = FetchType.EAGER,mappedBy = "user")
     private List<Role> roles;
 
     public void setEmail(String email) {
@@ -45,5 +40,30 @@ public class User extends BaseModel {
     @Transactional
     public void setRoles(List<Role> roles) {
         this.roles = roles;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public String getFullName() {
+        return this.fullName;
+    }
+
+    public List<Session> getSessions() {
+        return this.sessions;
+    }
+
+    public UserStatus getUserStatus() {
+        return this.userStatus;
+    }
+
+    @Transactional
+    public List<Role> getRoles() {
+        return this.roles;
     }
 }
