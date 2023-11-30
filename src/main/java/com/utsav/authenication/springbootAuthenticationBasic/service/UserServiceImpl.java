@@ -16,6 +16,9 @@ import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService{
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
     @Override
     public User getUserByUserEmail(String userEmail) {
         Optional<User> userOptional =  userRepository.findByEmail(userEmail);
@@ -41,7 +44,7 @@ public class UserServiceImpl implements UserService{
         UserResDto userResDto = null;
         if(userOptional.isEmpty()){
             User user = new User();
-            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             user.setFullName(userReqDto.getFullName());
             user.setEmail(userReqDto.getEmail());
             user.setPassword(passwordEncoder.encode(userReqDto.getPassword()));

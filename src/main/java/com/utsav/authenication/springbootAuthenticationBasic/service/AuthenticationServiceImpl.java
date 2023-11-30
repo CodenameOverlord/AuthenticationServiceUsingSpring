@@ -18,6 +18,8 @@ import java.util.*;
 public class AuthenticationServiceImpl implements AuthenticationService{
     @Autowired
     RoleRepository roleRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
     @Override
     public UserResDto enlistRole(String userEmail, String password, RoleReqDto roleReqDto) {
         UserUserPassStatus userUserPassStatus = findUserAndCheckPassword(userEmail, password);
@@ -150,7 +152,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
     }
 
     private boolean checkPasswordMatch(String rawPassword, String encodedPassword) {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder (0);
+//        passwordEncoder = new BCryptPasswordEncoder (0);
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 
