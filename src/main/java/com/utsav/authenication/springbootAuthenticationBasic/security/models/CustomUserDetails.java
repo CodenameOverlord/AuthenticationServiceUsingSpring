@@ -24,6 +24,7 @@ public class CustomUserDetails implements UserDetails {
     private Boolean credentialsNonExpired;
     private Boolean accountNonLocked;
     private Boolean accountNonExpired;
+    private Long userId;
 
     public CustomUserDetails(User user){
         authorities = new ArrayList<>();
@@ -36,6 +37,7 @@ public class CustomUserDetails implements UserDetails {
         this.accountNonExpired = true;
         this.accountNonLocked = true;
         this.credentialsNonExpired = true;
+        this.userId = user.getId();
 //        return grantedAuthorities;
 
     }
@@ -52,6 +54,14 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public String getPassword() {
         return this.password;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     @Override
